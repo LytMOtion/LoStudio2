@@ -368,14 +368,26 @@ p{color:var(--ink-soft)}
 }
 @media(max-width:980px){
   :root{--gutter:28px}
-  .nav{position:fixed;inset:0 0 0 auto;width:min(86vw,380px);flex-direction:column;align-items:flex-start;justify-content:center;
-    gap:8px;background:var(--bg);padding:40px;transform:translateX(110%);transition:transform .4s cubic-bezier(.4,0,.2,1);box-shadow:-20px 0 60px rgba(0,0,0,.12)}
-  .nav.open{transform:translateX(0)}
-  .nav .lnk{font-size:1.4rem;font-family:var(--serif);color:var(--ink);letter-spacing:-.01em;padding:10px 0}
+  /* full-screen fade overlay menu */
+  .nav{position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;background:var(--bg);padding:32px;
+    opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s ease;z-index:205}
+  .nav.open{opacity:1;visibility:visible}
+  .nav .lnk{font-size:1.6rem;font-family:var(--serif);color:var(--ink);letter-spacing:-.01em;padding:8px 0}
   .nav .lnk::after{display:none}
-  .nav .head-cta{margin-top:18px;font-size:.8rem;padding:.9rem 1.6rem}
+  .nav .head-cta{margin-top:14px;font-size:.8rem;padding:.9rem 1.8rem}
+  /* panel uses the theme's light bg, so keep menu text readable even on over-dark interior pages */
+  .head.over-dark .nav .lnk{color:var(--ink)}
+  .head.over-dark .nav .lnk:hover,.head.over-dark .nav .lnk.active{color:var(--navy)}
+  .head.over-dark .nav .head-cta{color:var(--navy);border-color:var(--navy)}
+  .head.over-dark .nav .head-cta:hover{background:var(--navy);color:#fff}
   .burger{display:flex}
   body.menu-open{overflow:hidden}
+  /* burger animates to an X while open, in a colour that reads on the open panel */
+  body.menu-open .head .burger span{background:var(--ink)}
+  body.menu-open .head .burger span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  body.menu-open .head .burger span:nth-child(2){opacity:0}
+  body.menu-open .head .burger span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
   .hero-grid{grid-template-columns:1fr;gap:70px}
   .hero-figure{order:-1;max-width:420px}
   .hero .lead{max-width:48ch}
@@ -557,7 +569,7 @@ h1,h2,h3,h4{font-weight:500;letter-spacing:-.012em}
         <a href="https://www.nmlsconsumeraccess.org/">NMLS Consumer Access</a>
       </div>
     </div>
-    <p class="f-copy">© 2026 Coastal Bridge Home Loans. All rights reserved. &nbsp;·&nbsp; Onyx — a credencesites.com template.</p>
+    <p class="f-copy">© 2026 Coastal Bridge Home Loans. All rights reserved. &nbsp;·&nbsp; Onyx — a Credence template.</p>
   </div>
 </footer>
 <nav class="mbar" aria-label="Quick actions">
@@ -584,21 +596,26 @@ h1,h2,h3,h4{font-weight:500;letter-spacing:-.012em}
     onScroll();
   }
 
-  /* Mobile menu */
+  /* Mobile menu — tap to open (fades in); closes on link, Escape, or tapping empty space */
   var burger = document.querySelector(".burger");
   var nav = document.querySelector(".nav");
   if (burger && nav) {
-    burger.addEventListener("click", function () {
-      var open = nav.classList.toggle("open");
+    function setMenu(open) {
+      nav.classList.toggle("open", open);
       document.body.classList.toggle("menu-open", open);
-      burger.setAttribute("aria-expanded", open);
+      burger.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+    burger.addEventListener("click", function () {
+      setMenu(!nav.classList.contains("open"));
     });
     nav.querySelectorAll("a").forEach(function (a) {
-      a.addEventListener("click", function () {
-        nav.classList.remove("open");
-        document.body.classList.remove("menu-open");
-        burger.setAttribute("aria-expanded", false);
-      });
+      a.addEventListener("click", function () { setMenu(false); });
+    });
+    nav.addEventListener("click", function (e) {
+      if (e.target === nav) setMenu(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && nav.classList.contains("open")) setMenu(false);
     });
   }
 
